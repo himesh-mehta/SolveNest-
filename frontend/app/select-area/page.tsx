@@ -8,9 +8,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { LoadingState } from '@/components/ui/loading-state';
 import { MockMap } from '@/components/map/mock-map';
 import { eoService, Location } from '@/services/eo-service';
+import { useTranslation } from '@/lib/i18n';
 
 export default function SelectAreaPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   
   // State variables
   const [isLoadingMap, setIsLoadingMap] = useState(true);
@@ -54,11 +56,11 @@ export default function SelectAreaPage() {
       if (result) {
         setSelectedLocation(result);
       } else {
-        setSearchError("We couldn't find that place in this demo.");
+        setSearchError(t('selectArea.notFound'));
         setSelectedLocation(null);
       }
     } catch (err) {
-      setSearchError("An error occurred during search. Please try again.");
+      setSearchError(t('selectArea.searchError'));
     } finally {
       setIsSearching(false);
     }
@@ -75,8 +77,8 @@ export default function SelectAreaPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <LoadingState 
-          message="Loading map visualization..." 
-          description="Fetching local district map vectors..." 
+          message={t('selectArea.loadingMap')} 
+          description={t('selectArea.loadingMapDesc')} 
           size="lg"
         />
       </div>
@@ -93,11 +95,11 @@ export default function SelectAreaPage() {
           onClick={() => router.push('/')}
           leftIcon={<ArrowLeft className="h-4 w-4" />}
         >
-          Back
+          {t('common.back')}
         </Button>
         <div>
-          <h3 className="text-xl md:text-2xl font-bold text-brand-neutral-900">Choose an Area</h3>
-          <p className="text-xs md:text-sm text-brand-neutral-700">Choose the place you want to explore.</p>
+          <h3 className="text-xl md:text-2xl font-bold text-brand-neutral-900">{t('selectArea.title')}</h3>
+          <p className="text-xs md:text-sm text-brand-neutral-700">{t('selectArea.subtitle')}</p>
         </div>
       </div>
 
@@ -113,7 +115,7 @@ export default function SelectAreaPage() {
             locations={locations}
           />
           <p className="text-xs text-brand-neutral-700 italic">
-            Tip: You can pan by dragging the map, zoom using the controls on the top left, or tap directly on a pin to select.
+            {t('selectArea.mapTip')}
           </p>
         </div>
 
@@ -122,11 +124,11 @@ export default function SelectAreaPage() {
           {/* Search Card */}
           <Card>
             <CardContent className="p-4 md:p-6 space-y-4">
-              <h4 className="font-semibold text-brand-neutral-900 text-sm md:text-base">Search for a place</h4>
+              <h4 className="font-semibold text-brand-neutral-900 text-sm md:text-base">{t('selectArea.searchLabel')}</h4>
               <form onSubmit={handleSearchSubmit} className="relative">
                 <input
                   type="text"
-                  placeholder="Type city name (e.g. Kolhapur)..."
+                  placeholder={t('selectArea.searchPlaceholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-3 pr-10 py-2 border border-brand-neutral-200 rounded-brand-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-green-700 focus:border-transparent text-brand-neutral-900"
@@ -134,8 +136,8 @@ export default function SelectAreaPage() {
                 <button
                   type="submit"
                   disabled={isSearching}
-                  className="absolute right-2 top-2 text-brand-neutral-700 hover:text-brand-neutral-900 disabled:opacity-50"
-                  aria-label="Search"
+                  className="absolute right-2 top-2 text-brand-neutral-700 hover:text-brand-neutral-900 disabled:opacity-50 cursor-pointer"
+                  aria-label={t('common.search')}
                 >
                   <Search className="h-5 w-5" />
                 </button>
@@ -143,7 +145,7 @@ export default function SelectAreaPage() {
 
               {/* Search Feedback / Errors */}
               {isSearching && (
-                <p className="text-xs text-brand-neutral-700">Searching location coordinates...</p>
+                <p className="text-xs text-brand-neutral-700">{t('selectArea.searching')}</p>
               )}
 
               {searchError && (
@@ -160,7 +162,7 @@ export default function SelectAreaPage() {
             <CardContent className="p-4 md:p-6 space-y-6">
               <div>
                 <h4 className="font-semibold text-brand-neutral-700 text-xs uppercase tracking-wider">
-                  Selected Area
+                  {t('selectArea.selectedArea')}
                 </h4>
                 {selectedLocation ? (
                   <div className="mt-3 flex items-start gap-3">
@@ -172,13 +174,13 @@ export default function SelectAreaPage() {
                         {selectedLocation.name}, {selectedLocation.region}
                       </h5>
                       <span className="inline-flex items-center px-2 py-0.5 rounded bg-brand-green-50 text-brand-green-700 border border-brand-green-100 text-[10px] font-semibold mt-1">
-                        Area selected
+                        {t('selectArea.areaSelected')}
                       </span>
                     </div>
                   </div>
                 ) : (
                   <p className="text-sm text-brand-neutral-700 mt-2">
-                    No area selected yet. Search for a location or click on any map pin to choose.
+                    {t('selectArea.noAreaSelected')}
                   </p>
                 )}
               </div>
@@ -191,14 +193,14 @@ export default function SelectAreaPage() {
                   disabled={!selectedLocation}
                   onClick={handleConfirmSelection}
                 >
-                  View this area
+                  {t('selectArea.viewThisArea')}
                 </Button>
                 <Button
                   variant="secondary"
                   className="w-full"
                   onClick={() => router.push('/')}
                 >
-                  Change area
+                  {t('selectArea.changeArea')}
                 </Button>
               </div>
             </CardContent>

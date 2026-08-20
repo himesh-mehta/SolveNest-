@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { Menu, X, Home, Map, Columns, History, HelpCircle, Leaf } from 'lucide-react';
 import { clsx } from 'clsx';
 import { LanguageSelector } from './language-selector';
+import { useTranslation } from '@/lib/i18n';
 
 export interface AppShellProps {
   children: React.ReactNode;
@@ -14,13 +15,14 @@ export interface AppShellProps {
 export const AppShell: React.FC<AppShellProps> = ({ children }) => {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { t } = useTranslation();
 
   const navigationItems = [
-    { name: 'Home', href: '/', icon: Home },
-    { name: 'My Areas', href: '/my-areas', icon: Map },
-    { name: 'Compare', href: '/compare', icon: Columns },
-    { name: 'History', href: '/history', icon: History },
-    { name: 'Help', href: '/help', icon: HelpCircle },
+    { key: 'nav.home', name: t('nav.home'), href: '/', icon: Home },
+    { key: 'nav.myAreas', name: t('nav.myAreas'), href: '/my-areas', icon: Map },
+    { key: 'nav.compare', name: t('nav.compare'), href: '/compare', icon: Columns },
+    { key: 'nav.history', name: t('nav.history'), href: '/history', icon: History },
+    { key: 'nav.help', name: t('nav.help'), href: '/help', icon: HelpCircle },
   ];
 
   const isActive = (href: string) => {
@@ -32,7 +34,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
 
   const getPageTitle = () => {
     const activeItem = navigationItems.find(item => isActive(item.href));
-    return activeItem ? activeItem.name : 'SIH25170';
+    return activeItem ? activeItem.name : 'SolveNest';
   };
 
   return (
@@ -55,7 +57,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
             const Icon = item.icon;
             return (
               <Link
-                key={item.name}
+                key={item.key}
                 href={item.href}
                 className={clsx(
                   "flex items-center gap-3 px-4 py-3 rounded-brand-md text-sm font-medium transition-colors",
@@ -108,7 +110,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                 const Icon = item.icon;
                 return (
                   <Link
-                    key={item.name}
+                    key={item.key}
                     href={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={clsx(
