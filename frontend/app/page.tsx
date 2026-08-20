@@ -1,14 +1,17 @@
 "use client";
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { MapPin, Upload, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 
 export default function HomePage() {
+  const router = useRouter();
+
   const handleSelectArea = () => {
-    alert("Select Area feature will be implemented in the next phase.");
+    router.push("/select-area");
   };
 
   const handleUploadImage = () => {
@@ -23,8 +26,7 @@ export default function HomePage() {
           Welcome to SolveNest
         </h3>
         <p className="text-base md:text-lg text-brand-neutral-700 max-w-2xl leading-relaxed">
-          We help you understand changes in your fields, water bodies, or local areas using satellite imagery. 
-          No technical knowledge or GIS experience required.
+          Understand what is changing in your area using satellite imagery. No technical knowledge required.
         </p>
       </section>
 
@@ -72,7 +74,7 @@ export default function HomePage() {
                     Upload an Image
                   </h5>
                   <p className="text-sm text-brand-neutral-700 mt-1">
-                    Upload your own satellite or aerial imagery to analyze local area reports.
+                    Upload an image to understand what's happening in your area.
                   </p>
                 </div>
               </div>
