@@ -495,19 +495,28 @@ function ViewerContent() {
                   </CardContent>
                 </Card>
 
-                {/* Reset analysis button */}
-                <Button
-                  variant="secondary"
-                  className="w-full"
-                  onClick={() => {
-                    setViewMode('viewer');
-                    setAnalysisResult(null);
-                    setSelectedFinding(null);
-                    setAiResponse(null);
-                  }}
-                >
-                  Clear results
-                </Button>
+                {/* Reset / Compare analysis buttons */}
+                <div className="space-y-2">
+                  <Button
+                    variant="primary"
+                    className="w-full"
+                    onClick={() => router.push(`/compare?area=${location.id}`)}
+                  >
+                    See what changed
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    className="w-full"
+                    onClick={() => {
+                      setViewMode('viewer');
+                      setAnalysisResult(null);
+                      setSelectedFinding(null);
+                      setAiResponse(null);
+                    }}
+                  >
+                    Clear results
+                  </Button>
+                </div>
               </>
             ) : (
               // Default Viewer mode sidebar contents
@@ -520,13 +529,22 @@ function ViewerContent() {
                       <p className="text-xs text-brand-neutral-900 leading-normal">
                         Click below to look for land changes between May 2022 and May 2025.
                       </p>
-                      <Button
-                        variant="primary"
-                        className="w-full"
-                        onClick={handleStartAnalysis}
-                      >
-                        Analyze this area
-                      </Button>
+                      <div className="space-y-2">
+                        <Button
+                          variant="primary"
+                          className="w-full"
+                          onClick={handleStartAnalysis}
+                        >
+                          Analyze this area
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          className="w-full"
+                          onClick={() => router.push(`/compare?area=${location.id}`)}
+                        >
+                          Compare images
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 )}

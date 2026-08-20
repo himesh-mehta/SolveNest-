@@ -8,6 +8,7 @@ export interface ErrorStateProps extends React.HTMLAttributes<HTMLDivElement> {
   message: string;
   details?: string;
   onRetry?: () => void;
+  retryText?: string;
 }
 
 export const ErrorState: React.FC<ErrorStateProps> = ({
@@ -16,6 +17,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
   message,
   details,
   onRetry,
+  retryText = "Try again",
   ...props
 }) => {
   const [showDetails, setShowDetails] = useState(false);
@@ -39,7 +41,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
           {onRetry && (
             <div className="mt-4">
               <Button variant="secondary" size="sm" onClick={onRetry}>
-                Try again
+                {retryText}
               </Button>
             </div>
           )}
