@@ -9,12 +9,14 @@ interface FindingsListProps {
   findings: Finding[];
   selectedFindingId: string | null;
   onSelectFinding: (finding: Finding) => void;
+  className?: string;
 }
 
 export const FindingsList: React.FC<FindingsListProps> = ({
   findings,
   selectedFindingId,
-  onSelectFinding
+  onSelectFinding,
+  className
 }) => {
   const getCategoryIcon = (category: string) => {
     switch (category) {
@@ -30,7 +32,7 @@ export const FindingsList: React.FC<FindingsListProps> = ({
   };
 
   return (
-    <div className="space-y-3">
+    <div className={className || "space-y-3"}>
       {findings.map((finding) => {
         const isSelected = selectedFindingId === finding.id;
 

@@ -74,6 +74,11 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
           })}
         </nav>
 
+        {/* Language selector above footer */}
+        <div className="px-6 py-4 border-t border-brand-neutral-200 bg-white">
+          <LanguageSelector />
+        </div>
+
         {/* Footer info */}
         <div className="p-4 border-t border-brand-neutral-200 bg-white text-center">
           <p className="text-xs text-brand-neutral-700">SIH25170 Foundation v1.0</p>
@@ -127,6 +132,10 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                 );
               })}
             </nav>
+            {/* Mobile Drawer Language selector */}
+            <div className="px-6 py-4 border-t border-brand-neutral-200">
+              <LanguageSelector />
+            </div>
             {/* Drawer Footer */}
             <div className="p-4 border-t border-brand-neutral-200 text-center">
               <p className="text-xs text-brand-neutral-700">SIH25170 Foundation v1.0</p>
@@ -149,10 +158,6 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
               <Menu className="h-5 w-5" />
             </button>
             <h2 className="text-base md:text-lg font-semibold text-brand-neutral-900">{getPageTitle()}</h2>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <LanguageSelector />
           </div>
         </header>
 

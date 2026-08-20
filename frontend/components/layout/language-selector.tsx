@@ -43,7 +43,7 @@ export const LanguageSelector: React.FC = () => {
             onClick={() => setIsOpen(false)}
           />
           <div
-            className="absolute right-0 z-20 mt-1 w-44 origin-top-right rounded-brand-md bg-white border border-brand-neutral-200 shadow-brand-md focus:outline-none"
+            className="absolute right-0 bottom-full z-20 mb-1.5 w-44 origin-bottom-right rounded-brand-md bg-white border border-brand-neutral-200 shadow-brand-md focus:outline-none"
             role="menu"
             aria-orientation="vertical"
             aria-labelledby="menu-button"

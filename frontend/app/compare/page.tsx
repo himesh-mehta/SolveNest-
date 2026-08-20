@@ -238,10 +238,41 @@ function CompareContent() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 py-2 md:py-4">
-      {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="max-w-7xl mx-auto space-y-6 py-2 md:py-4">
+      {/* Top Location Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-brand-neutral-200 pb-4">
         <div className="flex items-center gap-3">
+          <span className="text-xs uppercase font-bold text-brand-neutral-700 tracking-wider">Location:</span>
+          <h3 className="text-lg md:text-xl font-bold text-brand-neutral-900">
+            {location.name}, {location.region}
+          </h3>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {/* Comparison View Mode Pills */}
+          <div className="flex items-center gap-2 bg-brand-neutral-100 p-1 rounded-brand-md self-start sm:self-auto">
+            <button
+              onClick={() => setCompareMode('side-by-side')}
+              className={`px-3 py-1.5 rounded text-xs font-semibold transition-colors cursor-pointer ${
+                compareMode === 'side-by-side'
+                  ? 'bg-white text-brand-neutral-900 shadow-brand-sm'
+                  : 'text-brand-neutral-700 hover:text-brand-neutral-900'
+              }`}
+            >
+              {t('compare.sideBySide')}
+            </button>
+            <button
+              onClick={() => setCompareMode('swipe')}
+              className={`px-3 py-1.5 rounded text-xs font-semibold transition-colors cursor-pointer ${
+                compareMode === 'swipe'
+                  ? 'bg-white text-brand-neutral-900 shadow-brand-sm'
+                  : 'text-brand-neutral-700 hover:text-brand-neutral-900'
+              }`}
+            >
+              {t('compare.swipe')}
+            </button>
+          </div>
+
           <Button
             variant="secondary"
             size="sm"
@@ -250,38 +281,6 @@ function CompareContent() {
           >
             {t('compare.backToViewer')}
           </Button>
-          <div>
-            <h3 className="text-xl md:text-2xl font-bold text-brand-neutral-900">
-              {t('compare.title')} — {location.name}, {location.region}
-            </h3>
-            <p className="text-xs md:text-sm text-brand-neutral-700">
-              {dates.find(d => d.id === beforeDateId)?.label || beforeDateId} vs {dates.find(d => d.id === afterDateId)?.label || afterDateId}
-            </p>
-          </div>
-        </div>
-
-        {/* Comparison View Mode Pills */}
-        <div className="flex items-center gap-2 bg-brand-neutral-100 p-1 rounded-brand-md self-start sm:self-auto">
-          <button
-            onClick={() => setCompareMode('side-by-side')}
-            className={`px-3 py-1.5 rounded text-xs font-semibold transition-colors cursor-pointer ${
-              compareMode === 'side-by-side'
-                ? 'bg-white text-brand-neutral-900 shadow-brand-sm'
-                : 'text-brand-neutral-700 hover:text-brand-neutral-900'
-            }`}
-          >
-            {t('compare.sideBySide')}
-          </button>
-          <button
-            onClick={() => setCompareMode('swipe')}
-            className={`px-3 py-1.5 rounded text-xs font-semibold transition-colors cursor-pointer ${
-              compareMode === 'swipe'
-                ? 'bg-white text-brand-neutral-900 shadow-brand-sm'
-                : 'text-brand-neutral-700 hover:text-brand-neutral-900'
-            }`}
-          >
-            {t('compare.swipe')}
-          </button>
         </div>
       </div>
 
@@ -340,9 +339,12 @@ function CompareContent() {
           />
         </div>
       ) : (
+        // Main 3-Column Grid Layout (Responsive Stacking on mobile)
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Visual Images Container - Takes 3 columns */}
+          
+          {/* CENTER PANEL: Comparison display and findings - Takes 3 columns */}
           <div className="lg:col-span-3 space-y-6">
+            
             {compareMode === 'side-by-side' ? (
               // Side-by-Side Dual Frame Display
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -505,129 +507,67 @@ function CompareContent() {
               </Card>
             )}
 
-            {/* Desktop Only Bottom layout content */}
-            <div className="hidden lg:block space-y-6">
-              {/* Selected Finding Detail Description */}
-              {selectedChange && (
-                <Card className="border-l-4 border-l-brand-green-700 bg-brand-green-50/10">
-                  <CardContent className="p-5 space-y-3">
-                    <div className="flex justify-between items-center flex-wrap gap-2">
-                      <h5 className="font-bold text-brand-neutral-900 text-base">
-                        {selectedChange.title} — {selectedChange.statusLabel} {t('analysis.selectedFindingDetails')}
-                      </h5>
-                      {/* Optional statistics list */}
-                      {selectedChange.statistics && (
-                        <div className="flex gap-4 text-xs bg-white px-3 py-1 rounded-brand-md border border-brand-neutral-200">
-                          <div>
-                            <span className="text-brand-neutral-700 font-medium">{t('compare.before')}:</span>{' '}
-                            <span className="font-bold text-brand-neutral-900">{selectedChange.statistics.before}</span>
-                          </div>
-                          <div>
-                            <span className="text-brand-neutral-700 font-medium">{t('compare.after')}:</span>{' '}
-                            <span className="font-bold text-brand-neutral-900">{selectedChange.statistics.after}</span>
-                          </div>
-                          <div>
-                            <span className="text-brand-neutral-700 font-medium">{t('compare.changeSummary')}:</span>{' '}
-                            <span className="font-bold text-brand-green-700">{selectedChange.statistics.change}</span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-sm text-brand-neutral-700 leading-relaxed">
-                      {selectedChange.description}
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Ask about this change Card */}
-              <Card>
-                <CardContent className="p-6">
-                  <AIAssistant
-                    context={{
-                      locationId: location.id,
-                      areaName: location.name,
-                      beforeDate: beforeDateId,
-                      afterDate: afterDateId,
-                      findings: comparisonResult?.changes || [],
-                      comparison: comparisonResult || undefined
-                    }}
-                    onSelectFindingById={handleSelectFindingById}
-                  />
-                </CardContent>
-              </Card>
-
-              {/* Technical details reusable panel */}
-              <TechDetailsPanel groups={getTechDetailsGroups()} />
-            </div>
-          </div>
-
-          {/* Right Sidebar: Change Findings List */}
-          <div className="space-y-6">
-            <Card>
-              <CardContent className="p-4 md:p-5 space-y-4">
-                <h4 className="font-bold text-brand-neutral-900 text-base border-b border-brand-neutral-100 pb-2">
-                  {t('compare.whatChanged')}
-                </h4>
-                <p className="text-xs text-brand-neutral-700 leading-normal">
-                  {t('compare.selectChangeHint')}
-                </p>
-                
-                {/* Reuse findings list component */}
-                <FindingsList
-                  findings={changeFindingsAsFindings}
-                  selectedFindingId={selectedChange?.id || null}
-                  onSelectFinding={(f) => {
-                    const match = comparisonResult?.changes.find(c => c.id === f.id);
-                    if (match) setSelectedChange(match);
-                  }}
-                />
-              </CardContent>
-            </Card>
-
-            <Button
-              variant="primary"
-              className="w-full"
-              onClick={() => router.push(`/viewer?area=${location.id}`)}
-            >
-              {t('compare.seeDetails')}
-            </Button>
-          </div>
-
-          {/* Mobile Stacking Panels */}
-          <div className="lg:hidden col-span-1 space-y-6">
             {/* Selected Finding Detail Description */}
             {selectedChange && (
               <Card className="border-l-4 border-l-brand-green-700 bg-brand-green-50/10">
-                <CardContent className="p-4 space-y-2">
-                  <h5 className="font-bold text-brand-neutral-900 text-sm md:text-base">
-                    {selectedChange.title} — {selectedChange.statusLabel} {t('analysis.selectedFindingDetails')}
-                  </h5>
-                  {selectedChange.statistics && (
-                    <div className="flex gap-3 text-xs bg-white px-2.5 py-1 rounded border border-brand-neutral-200">
-                      <div>
-                        <span className="text-brand-neutral-700">{t('compare.before')}:</span>{' '}
-                        <span className="font-bold">{selectedChange.statistics.before}</span>
+                <CardContent className="p-4 md:p-5 space-y-3">
+                  <div className="flex justify-between items-center flex-wrap gap-2">
+                    <h5 className="font-bold text-brand-neutral-900 text-sm md:text-base">
+                      {selectedChange.title} — {selectedChange.statusLabel} {t('analysis.selectedFindingDetails')}
+                    </h5>
+                    {/* Statistics list */}
+                    {selectedChange.statistics && (
+                      <div className="flex gap-3 text-xs bg-white px-2.5 py-1 rounded-brand-md border border-brand-neutral-200">
+                        <div>
+                          <span className="text-brand-neutral-700 font-medium">{t('compare.before')}:</span>{' '}
+                          <span className="font-bold text-brand-neutral-900">{selectedChange.statistics.before}</span>
+                        </div>
+                        <div>
+                          <span className="text-brand-neutral-700 font-medium">{t('compare.after')}:</span>{' '}
+                          <span className="font-bold text-brand-neutral-900">{selectedChange.statistics.after}</span>
+                        </div>
+                        <div>
+                          <span className="text-brand-neutral-700 font-medium">{t('compare.changeSummary')}:</span>{' '}
+                          <span className="font-bold text-brand-green-700">{selectedChange.statistics.change}</span>
+                        </div>
                       </div>
-                      <div>
-                        <span className="text-brand-neutral-700">{t('compare.after')}:</span>{' '}
-                        <span className="font-bold">{selectedChange.statistics.after}</span>
-                      </div>
-                      <div>
-                        <span className="font-bold text-brand-green-700">{selectedChange.statistics.change}</span>
-                      </div>
-                    </div>
-                  )}
-                  <p className="text-xs text-brand-neutral-700 leading-relaxed">
+                    )}
+                  </div>
+                  <p className="text-xs md:text-sm text-brand-neutral-700 leading-relaxed">
                     {selectedChange.description}
                   </p>
                 </CardContent>
               </Card>
             )}
 
-            {/* Ask about this change Card */}
-            <Card>
-              <CardContent className="p-4">
+            {/* WHAT CHANGED: Grid of findings cards (Desktop: 3 col, Tablet: 2 col, Mobile: 1 col) */}
+            {comparisonResult && (
+              <Card>
+                <CardContent className="p-4 md:p-5 space-y-4">
+                  <h4 className="font-bold text-brand-neutral-900 text-base border-b border-brand-neutral-100 pb-2">
+                    {t('compare.whatChanged')}
+                  </h4>
+                  <p className="text-xs text-brand-neutral-700 leading-normal">
+                    {t('compare.selectChangeHint')}
+                  </p>
+                  <FindingsList
+                    findings={changeFindingsAsFindings}
+                    selectedFindingId={selectedChange?.id || null}
+                    onSelectFinding={(f) => {
+                      const match = comparisonResult?.changes.find(c => c.id === f.id);
+                      if (match) setSelectedChange(match);
+                    }}
+                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+                  />
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* RIGHT PANEL: GPT-OSS AI Assistant (Desktop: 1 column, Mobile: Stacks under center content) */}
+          <div className="lg:col-span-1 space-y-6">
+            <Card className="h-full">
+              <CardContent className="p-4 md:p-5">
                 <AIAssistant
                   context={{
                     locationId: location.id,
@@ -641,10 +581,14 @@ function CompareContent() {
                 />
               </CardContent>
             </Card>
-
-            {/* Technical details reusable panel */}
-            <TechDetailsPanel groups={getTechDetailsGroups()} />
           </div>
+        </div>
+      )}
+
+      {/* TECHNICAL DETAILS: Collapsed by default, placed at the very bottom of the page */}
+      {compareState === 'results' && (
+        <div className="mt-6">
+          <TechDetailsPanel groups={getTechDetailsGroups()} />
         </div>
       )}
     </div>

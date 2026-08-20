@@ -40,6 +40,10 @@ function ViewerContent() {
   // Phase 6: Save area state
   const [isSaved, setIsSaved] = useState(false);
 
+  // Phase 7 visual summary state
+  const [beforeThumbUrl, setBeforeThumbUrl] = useState<string | null>(null);
+  const [afterThumbUrl, setAfterThumbUrl] = useState<string | null>(null);
+
   // Fetch location metadata and dates list on load
   useEffect(() => {
     if (!areaId) {
@@ -110,6 +114,26 @@ function ViewerContent() {
 
     fetchImagery();
   }, [location, selectedDateId]);
+
+  // Fetch comparison thumbnails once location is ready
+  useEffect(() => {
+    if (!location) return;
+    const fetchThumbs = async () => {
+      try {
+        const dateOptions = await eoService.getAvailableDates(location.id);
+        const available = dateOptions.filter(d => d.isAvailable);
+        if (available.length >= 2) {
+          const bUrl = await eoService.getImagery(location.id, available[0].id);
+          const aUrl = await eoService.getImagery(location.id, available[available.length - 1].id);
+          setBeforeThumbUrl(bUrl);
+          setAfterThumbUrl(aUrl);
+        }
+      } catch (err) {
+        console.error("Failed to load comparison thumbnails", err);
+      }
+    };
+    fetchThumbs();
+  }, [location]);
 
   const handleZoomIn = () => {
     setImgZoom(prev => Math.min(prev + 0.25, 3));
@@ -261,58 +285,55 @@ function ViewerContent() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 py-2 md:py-4">
-      {/* Back Button and Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="max-w-7xl mx-auto space-y-6 py-2 md:py-4">
+      {/* Top Location Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-brand-neutral-200 pb-4">
         <div className="flex items-center gap-3">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => router.push('/select-area')}
-            leftIcon={<ArrowLeft className="h-4 w-4" />}
-          >
-            {t('viewer.changeArea')}
-          </Button>
-          {/* Phase 6: Save toggle */}
+          <span className="text-xs uppercase font-bold text-brand-neutral-700 tracking-wider">Location:</span>
+          <h3 className="text-lg md:text-xl font-bold text-brand-neutral-900">
+            {location.name}, {location.region}
+          </h3>
           <button
             onClick={handleToggleSave}
             title={isSaved ? `${t('common.saved')} (${t('nav.myAreas')})` : `${t('common.save')} (${location.name})`}
             aria-label={isSaved ? t('common.saved') : t('common.save')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-brand-md border border-brand-neutral-200 bg-white text-xs font-semibold transition-colors hover:bg-brand-neutral-100 cursor-pointer"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-brand-md border border-brand-neutral-200 bg-white text-[10px] font-bold transition-colors hover:bg-brand-neutral-100 cursor-pointer"
           >
             {isSaved
-              ? <><BookmarkCheck className="h-4 w-4 text-brand-green-700" /><span className="text-brand-green-700">{t('common.saved')}</span></>
-              : <><Bookmark className="h-4 w-4 text-brand-neutral-700" /><span className="text-brand-neutral-700">{t('common.save')}</span></>
+              ? <><BookmarkCheck className="h-3 w-3 text-brand-green-700" /><span className="text-brand-green-700">{t('common.saved')}</span></>
+              : <><Bookmark className="h-3 w-3 text-brand-neutral-700" /><span className="text-brand-neutral-700">{t('common.save')}</span></>
             }
           </button>
-          <div>
-            <h3 className="text-xl md:text-2xl font-bold text-brand-neutral-900">
-              {viewMode === 'results' ? t('viewer.analysisTitle') : t('viewer.title')} — {location.name}, {location.region}
-            </h3>
-            <p className="text-xs md:text-sm text-brand-neutral-700">
-              {viewMode === 'results' ? t('viewer.analysisSubtitle') : t('viewer.subtitle')}
-            </p>
-          </div>
         </div>
 
-        {/* Date Selector (disabled in results mode to prevent inconsistencies) */}
-        {viewMode !== 'progress' && (
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4.5 w-4.5 text-brand-neutral-700" />
-            <select
-              value={selectedDateId}
-              disabled={viewMode === 'results'}
-              onChange={(e) => setSelectedDateId(e.target.value)}
-              className="border border-brand-neutral-200 bg-white rounded-brand-md px-3 py-1.5 text-sm font-semibold text-brand-neutral-900 focus:outline-none focus:ring-2 focus:ring-brand-green-700 focus:border-transparent cursor-pointer disabled:opacity-50"
-            >
-              {dates.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.label} {!d.isAvailable && `(${t('viewer.unavailable')})`}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
+        <div className="flex items-center gap-3">
+          {viewMode !== 'progress' && (
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-brand-neutral-700" />
+              <select
+                value={selectedDateId}
+                disabled={viewMode === 'results'}
+                onChange={(e) => setSelectedDateId(e.target.value)}
+                className="border border-brand-neutral-200 bg-white rounded-brand-md px-2.5 py-1 text-xs font-semibold text-brand-neutral-900 focus:outline-none focus:ring-2 focus:ring-brand-green-700 cursor-pointer disabled:opacity-50"
+              >
+                {dates.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.label} {!d.isAvailable && `(${t('viewer.unavailable')})`}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => router.push('/select-area')}
+            leftIcon={<ArrowLeft className="h-3.5 w-3.5" />}
+          >
+            {t('viewer.changeArea')}
+          </Button>
+        </div>
       </div>
 
       {viewMode === 'progress' ? (
@@ -321,10 +342,13 @@ function ViewerContent() {
           <AnalysisProgress currentStep={analysisStep} />
         </div>
       ) : (
-        // Main Grid Layout for Viewer / Results
+        // Main 3-Column Grid Layout (Responsive Stacking on mobile)
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Main EO Image Viewer Container - Takes 3 columns */}
+          
+          {/* CENTER PANEL: EO Viewer, findings and comparison summary - Takes 3 columns */}
           <div className="lg:col-span-3 space-y-6">
+            
+            {/* EO Image card (Dominant element) */}
             <Card className="overflow-hidden relative bg-brand-neutral-100 border border-brand-neutral-200">
               {/* Viewer Controls Layer */}
               {imageryUrl && !isChangingDate && (
@@ -407,161 +431,128 @@ function ViewerContent() {
               </div>
             </Card>
 
-            {/* Desktop Only bottom sections (Selected Finding Details, Q&A, Technical Details) */}
-            <div className="hidden lg:block space-y-6">
-              {viewMode === 'results' && (
-                <>
-                  {/* Selected Finding Detail Description */}
-                  {selectedFinding && (
-                    <Card className="border-l-4 border-l-brand-green-700 bg-brand-green-50/10">
-                      <CardContent className="p-5 space-y-2">
-                        <h5 className="font-bold text-brand-neutral-900 text-base">
-                          {selectedFinding.title} — {selectedFinding.statusLabel} {t('analysis.selectedFindingDetails')}
-                        </h5>
-                        <p className="text-sm text-brand-neutral-700 leading-relaxed">
-                          {selectedFinding.description}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  )}
+            {/* Selected Finding Detail Description */}
+            {viewMode === 'results' && selectedFinding && (
+              <Card className="border-l-4 border-l-brand-green-700 bg-brand-green-50/10">
+                <CardContent className="p-4 md:p-5 space-y-2">
+                  <h5 className="font-bold text-brand-neutral-900 text-sm md:text-base">
+                    {selectedFinding.title} — {selectedFinding.statusLabel} {t('analysis.selectedFindingDetails')}
+                  </h5>
+                  <p className="text-xs md:text-sm text-brand-neutral-700 leading-relaxed">
+                    {selectedFinding.description}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
 
-                  {/* Ask about this area Card */}
-                  <Card>
-                    <CardContent className="p-6">
-                      <AIAssistant
-                        context={{
-                          locationId: location.id,
-                          areaName: location.name,
-                          findings: analysisResult?.findings || []
-                        }}
-                        onSelectFindingById={handleSelectFindingById}
-                      />
-                    </CardContent>
-                  </Card>
+            {/* WHAT WE FOUND: Grid of Findings Cards (Desktop: 3 col, Tablet: 2 col, Mobile: 1 col) */}
+            {viewMode === 'results' && analysisResult && (
+              <Card>
+                <CardContent className="p-4 md:p-5 space-y-4">
+                  <h4 className="font-bold text-brand-neutral-900 text-base border-b border-brand-neutral-100 pb-2">
+                    {t('analysis.whatWeFound')}
+                  </h4>
+                  <p className="text-xs text-brand-neutral-700 leading-normal">
+                    {t('analysis.selectFindingHint')}
+                  </p>
+                  <FindingsList
+                    findings={analysisResult.findings}
+                    selectedFindingId={selectedFinding?.id || null}
+                    onSelectFinding={(f) => setSelectedFinding(f)}
+                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+                  />
+                </CardContent>
+              </Card>
+            )}
 
-                  {/* Technical details reusable panel */}
-                  <TechDetailsPanel groups={getTechDetailsGroups()} />
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Sidebar Column (Findings & Controls) - Stacks below image on mobile */}
-          <div className="space-y-6">
-            {viewMode === 'results' && analysisResult ? (
-              // Results mode sidebar contents
-              <>
-                <Card>
-                  <CardContent className="p-4 md:p-5 space-y-4">
-                    <h4 className="font-bold text-brand-neutral-900 text-base border-b border-brand-neutral-100 pb-2">
-                      {t('analysis.whatWeFound')}
+            {/* WHAT CHANGED: Visual side-by-side thumbnails and compare action */}
+            {viewMode === 'results' && (
+              <Card>
+                <CardContent className="p-4 md:p-5 space-y-4">
+                  <div className="flex items-center justify-between border-b border-brand-neutral-100 pb-2">
+                    <h4 className="font-bold text-brand-neutral-900 text-base">
+                      {t('compare.changeSummary')}
                     </h4>
-                    <p className="text-xs text-brand-neutral-700 leading-normal">
-                      {t('analysis.selectFindingHint')}
-                    </p>
-                    <FindingsList
-                      findings={analysisResult.findings}
-                      selectedFindingId={selectedFinding?.id || null}
-                      onSelectFinding={(f) => setSelectedFinding(f)}
-                    />
-                  </CardContent>
-                </Card>
+                    <span className="text-xs text-brand-neutral-700 font-semibold">
+                      May 2022 vs May 2025
+                    </span>
+                  </div>
+                  
+                  <div className="flex flex-col md:flex-row items-center gap-6">
+                    {/* Visual Before/After Thumbs */}
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      <div className="space-y-1 text-center">
+                        <span className="text-[10px] uppercase font-bold text-brand-neutral-700 tracking-wider">Before</span>
+                        <div className="w-24 h-16 md:w-32 md:h-20 bg-brand-neutral-100 rounded-brand-md overflow-hidden border border-brand-neutral-200 flex items-center justify-center">
+                          {beforeThumbUrl ? (
+                            /* eslint-disable-next-line @next/next/no-img-element */
+                            <img src={beforeThumbUrl} alt="Before" className="object-cover w-full h-full" />
+                          ) : (
+                            <div className="animate-pulse bg-brand-neutral-200 w-full h-full" />
+                          )}
+                        </div>
+                      </div>
+                      
+                      <span className="text-brand-neutral-700 font-bold text-lg mt-4">→</span>
+                      
+                      <div className="space-y-1 text-center">
+                        <span className="text-[10px] uppercase font-bold text-brand-neutral-700 tracking-wider">After</span>
+                        <div className="w-24 h-16 md:w-32 md:h-20 bg-brand-neutral-100 rounded-brand-md overflow-hidden border border-brand-neutral-200 flex items-center justify-center">
+                          {afterThumbUrl ? (
+                            /* eslint-disable-next-line @next/next/no-img-element */
+                            <img src={afterThumbUrl} alt="After" className="object-cover w-full h-full" />
+                          ) : (
+                            <div className="animate-pulse bg-brand-neutral-200 w-full h-full" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
 
-                {/* Reset / Compare analysis buttons */}
-                <div className="space-y-2">
-                  <Button
-                    variant="primary"
-                    className="w-full"
-                    onClick={() => router.push(`/compare?area=${location.id}`)}
-                  >
-                    {t('viewer.seeWhatChanged')}
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    className="w-full"
-                    onClick={() => {
-                      setViewMode('viewer');
-                      setAnalysisResult(null);
-                      setSelectedFinding(null);
-                    }}
-                  >
-                    {t('viewer.clearResults')}
-                  </Button>
-                </div>
-              </>
-            ) : (
-              // Default Viewer mode sidebar contents
-              <>
+                    {/* Summary text and action */}
+                    <div className="flex-1 space-y-3 text-center md:text-left">
+                      <p className="text-xs md:text-sm text-brand-neutral-700 leading-relaxed">
+                        A 3-year gap analysis shows major land changes in the selected area, including a decline in vegetation cover and construction of developed built-up structures.
+                      </p>
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() => router.push(`/compare?area=${location.id}`)}
+                      >
+                        {t('viewer.seeWhatChanged')}
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Before-analysis Sidebar placeholder in Center area if viewer mode */}
+            {viewMode === 'viewer' && imageryUrl && !isChangingDate && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Analyze Area Button Card */}
-                {imageryUrl && !isChangingDate && (
-                  <Card className="bg-brand-green-50/10 border-brand-green-100">
-                    <CardContent className="p-4 md:p-5 space-y-4 text-center">
+                <Card className="bg-brand-green-50/10 border-brand-green-100 flex flex-col justify-between">
+                  <CardContent className="p-4 md:p-5 space-y-4 text-center flex-1 flex flex-col justify-between">
+                    <div className="space-y-2">
                       <h4 className="font-bold text-brand-green-800 text-sm md:text-base">{t('viewer.analyzeReady')}</h4>
                       <p className="text-xs text-brand-neutral-900 leading-normal">
                         {t('viewer.analyzeDesc')}
                       </p>
-                      <div className="space-y-2">
-                        <Button
-                          variant="primary"
-                          className="w-full"
-                          onClick={handleStartAnalysis}
-                        >
-                          {t('viewer.analyzeBtn')}
-                        </Button>
-                        <Button
-                          variant="secondary"
-                          className="w-full"
-                          onClick={() => router.push(`/compare?area=${location.id}`)}
-                        >
-                          {t('viewer.compareBtn')}
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Metadata Details Card */}
-                <Card>
-                  <CardContent className="p-4 md:p-5 space-y-4">
-                    <h4 className="font-semibold text-brand-neutral-900 text-sm md:text-base border-b border-brand-neutral-100 pb-2">
-                      {t('viewer.imageryDetails')}
-                    </h4>
-                    
-                    <div className="space-y-3">
-                      <div>
-                        <span className="text-[10px] uppercase font-bold text-brand-neutral-700 tracking-wider">
-                          {t('viewer.locationName')}
-                        </span>
-                        <p className="text-sm font-semibold text-brand-neutral-900 mt-0.5">
-                          {location.name}, {location.region}
-                        </p>
-                      </div>
-
-                      <div>
-                        <span className="text-[10px] uppercase font-bold text-brand-neutral-700 tracking-wider">
-                          {t('viewer.observationDate')}
-                        </span>
-                        <p className="text-sm font-semibold text-brand-neutral-900 mt-0.5">
-                          {dates.find(d => d.id === selectedDateId)?.label || selectedDateId}
-                        </p>
-                      </div>
-
-                      <div>
-                        <span className="text-[10px] uppercase font-bold text-brand-neutral-700 tracking-wider">
-                          {t('viewer.availabilityStatus')}
-                        </span>
-                        <div className="mt-1">
-                          {imageryUrl ? (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded bg-brand-green-50 text-brand-green-700 border border-brand-green-100 text-[10px] font-semibold">
-                              {t('viewer.imageryLoaded')}
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded bg-status-error-bg text-status-error-text border border-status-error-border text-[10px] font-semibold">
-                              {t('viewer.unavailable')}
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                    </div>
+                    <div className="space-y-2 pt-4">
+                      <Button
+                        variant="primary"
+                        className="w-full"
+                        onClick={handleStartAnalysis}
+                      >
+                        {t('viewer.analyzeBtn')}
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        className="w-full"
+                        onClick={() => router.push(`/compare?area=${location.id}`)}
+                      >
+                        {t('viewer.compareBtn')}
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -582,47 +573,80 @@ function ViewerContent() {
                     </div>
                   </CardContent>
                 </Card>
-              </>
+              </div>
             )}
           </div>
 
-          {/* Mobile Only Stacking Panels (What We Found details, Q&A, Tech details) */}
-          <div className="lg:hidden col-span-1 space-y-6">
-            {viewMode === 'results' && (
-              <>
-                {/* Selected Finding Detail Description */}
-                {selectedFinding && (
-                  <Card className="border-l-4 border-l-brand-green-700 bg-brand-green-50/10">
-                    <CardContent className="p-4 space-y-2">
-                      <h5 className="font-bold text-brand-neutral-900 text-sm md:text-base">
-                        {selectedFinding.title} — {selectedFinding.statusLabel} {t('analysis.selectedFindingDetails')}
-                      </h5>
-                      <p className="text-xs md:text-sm text-brand-neutral-700 leading-relaxed">
-                        {selectedFinding.description}
+          {/* RIGHT PANEL: GPT-OSS AI Assistant (Desktop: 1 column, Mobile: Stacks under center content) */}
+          <div className="lg:col-span-1 space-y-6">
+            {viewMode === 'results' ? (
+              <Card className="h-full">
+                <CardContent className="p-4 md:p-5">
+                  <AIAssistant
+                    context={{
+                      locationId: location.id,
+                      areaName: location.name,
+                      findings: analysisResult?.findings || []
+                    }}
+                    onSelectFindingById={handleSelectFindingById}
+                  />
+                </CardContent>
+              </Card>
+            ) : (
+              // Default Metadata details in right sidebar before analysis
+              <Card>
+                <CardContent className="p-4 md:p-5 space-y-4">
+                  <h4 className="font-semibold text-brand-neutral-900 text-sm md:text-base border-b border-brand-neutral-100 pb-2">
+                    {t('viewer.imageryDetails')}
+                  </h4>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-brand-neutral-700 tracking-wider">
+                        {t('viewer.locationName')}
+                      </span>
+                      <p className="text-sm font-semibold text-brand-neutral-900 mt-0.5">
+                        {location.name}, {location.region}
                       </p>
-                    </CardContent>
-                  </Card>
-                )}
+                    </div>
 
-                {/* Ask about this area Card */}
-                <Card>
-                  <CardContent className="p-4">
-                    <AIAssistant
-                      context={{
-                        locationId: location.id,
-                        areaName: location.name,
-                        findings: analysisResult?.findings || []
-                      }}
-                      onSelectFindingById={handleSelectFindingById}
-                    />
-                  </CardContent>
-                </Card>
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-brand-neutral-700 tracking-wider">
+                        {t('viewer.observationDate')}
+                      </span>
+                      <p className="text-sm font-semibold text-brand-neutral-900 mt-0.5">
+                        {dates.find(d => d.id === selectedDateId)?.label || selectedDateId}
+                      </p>
+                    </div>
 
-                {/* Technical details reusable panel */}
-                <TechDetailsPanel groups={getTechDetailsGroups()} />
-              </>
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-brand-neutral-700 tracking-wider">
+                        {t('viewer.availabilityStatus')}
+                      </span>
+                      <div className="mt-1">
+                        {imageryUrl ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded bg-brand-green-50 text-brand-green-700 border border-brand-green-100 text-[10px] font-semibold">
+                            {t('viewer.imageryLoaded')}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded bg-status-error-bg text-status-error-text border border-status-error-border text-[10px] font-semibold">
+                            {t('viewer.unavailable')}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             )}
           </div>
+        </div>
+      )}
+
+      {/* TECHNICAL DETAILS: Collapsed by default, placed at the very bottom of the page */}
+      {viewMode === 'results' && (
+        <div className="mt-6">
+          <TechDetailsPanel groups={getTechDetailsGroups()} />
         </div>
       )}
     </div>
